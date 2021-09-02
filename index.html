@@ -1,0 +1,26 @@
+<html>
+    <head>
+        <title>Asky - ASCII Image Generator</title>
+        <script>
+            window.addEventListener('DOMContentLoaded', (event) => {
+                let imageName = 'manchette.jpg';
+                let sourceImage = new Image();
+                sourceImage.crossOrigin = 'anonymous';
+                sourceImage.src = imageName;
+                let canvasElement = document.getElementById('sourceImage');
+                let canvasContext = canvasElement.getContext('2d');
+                sourceImage.onload = function() {
+                    canvasElement.width = this.naturalWidth; // set canvas to image size
+                    canvasElement.height = this.naturalHeight;
+                    canvasContext.drawImage(sourceImage, 0, 0);
+                };
+            });
+        </script>
+    </head>
+    <body>
+        <h1>Asky - ASCII Image Generator</h1>
+        <h2>Starting image</h2>
+        <canvas id="sourceImage"></canvas>
+        <h2>ASCII Image</h2>
+    </body>
+</html>
