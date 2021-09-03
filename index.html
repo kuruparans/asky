@@ -9,17 +9,52 @@
                 sourceImage.src = imageName;
                 let canvasElement = document.getElementById('sourceImage');
                 let canvasContext = canvasElement.getContext('2d');
+                let sourceImagePixelArray = [];
                 sourceImage.onload = function() {
                     canvasElement.width = this.naturalWidth; // set canvas to image size
                     canvasElement.height = this.naturalHeight;
                     canvasContext.drawImage(sourceImage, 0, 0);
+
+                    let sourceImageWidth = canvasElement.width;
+                    let sourceImageHeight = canvasElement.height;
+
+                    let sourceImageData = canvasContext.getImageData(0, 0, sourceImageWidth, sourceImageHeight).data;
+                    sourceImagePixelArray = readImageData(sourceImageData, sourceImageWidth, sourceImageHeight);
+                    console.log(sourceImagePixelArray);
                 };
             });
+
+            function readImageData(imageData, imageWidth, imageHeight) {
+                let imagePixelArray = [];
+                let currentPositionColumn = 0;
+                let currentRowPixels = [];
+                for (i = 0; i < imageData.length; i += 4) {
+                    currentPixel = new Pixel(imageData[i + 0], imageData[i + 1], imageData[i + 2], imageData[i + 3]);
+                    currentRowPixels.push(currentPixel);
+                    currentPositionColumn++;
+
+                    if (currentPositionColumn === imageWidth) {
+                        imagePixelArray.push(currentRowPixels);
+                        currentRowPixels = [];
+                        currentPositionColumn = 0;
+                    }
+                }
+                return imagePixelArray;
+            }
+
+            class Pixel {
+                constructor(red, green, blue, alpha) {
+                    this.red = red;
+                    this.green = green;
+                    this.blue = blue;
+                    this.alpha = alpha; // TODO: necessary? or able to throw away
+                }
+            }
         </script>
     </head>
     <body>
         <h1>Asky - ASCII Image Generator</h1>
-        <h2>Starting image</h2>
+        <h2>Source image</h2>
         <canvas id="sourceImage"></canvas>
         <h2>ASCII Image</h2>
     </body>
