@@ -20,7 +20,10 @@
 
                     let sourceImageData = canvasContext.getImageData(0, 0, sourceImageWidth, sourceImageHeight).data;
                     sourceImagePixelArray = readImageData(sourceImageData, sourceImageWidth, sourceImageHeight);
-                    console.log(sourceImagePixelArray);
+
+                    let imageAsciiArray = getAsciiArray(sourceImagePixelArray, sourceImageWidth, sourceImageHeight);
+
+                    document.getElementById('asciiOutput').innerHTML = imageAsciiArray.toString();
                 };
             });
 
@@ -28,7 +31,7 @@
                 let imagePixelArray = [];
                 let currentPositionColumn = 0;
                 let currentRowPixels = [];
-                for (i = 0; i < imageData.length; i += 4) {
+                for (let i = 0; i < imageData.length; i += 4) {
                     currentPixel = new Pixel(imageData[i + 0], imageData[i + 1], imageData[i + 2], imageData[i + 3]);
                     currentRowPixels.push(currentPixel);
                     currentPositionColumn++;
@@ -42,12 +45,51 @@
                 return imagePixelArray;
             }
 
+            function getAsciiArray(imagePixelArray, imageWidth, imageHeight) {
+                let imageAsciiArray = []
+                for (let row = 0; row < imageHeight; row++) {
+                    let currentAsciiRow = [];
+                    for (let column = 0; column < imageWidth; column++) {
+                        currentAsciiRow.push(imagePixelArray[row][column].toAscii());
+                    }
+                    imageAsciiArray.push(currentAsciiRow);
+                }
+                return imageAsciiArray;
+            }
+
             class Pixel {
+                static characterMap = "`^\",:;Il!i~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
+
                 constructor(red, green, blue, alpha) {
                     this.red = red;
                     this.green = green;
                     this.blue = blue;
                     this.alpha = alpha; // TODO: necessary? or able to throw away
+                }
+                luminosity() {
+                    return 0.21 * this.red + 0.72 * this.green + 0.07 * this.blue;
+                }
+                lightness() {
+                    return (Math.max(this.red, this.green, this.blue) + Math.min(this.red, this.green, this.blue)) / 2;
+                }
+                average() {
+                    return (this.red + this.blue + this.green) / 3;
+                }
+
+                toAscii(brightnessType) {
+                    let percentBrightness;
+                    switch(brightnessType) {
+                        case 'luminosity':
+                            percentBrightness = this.luminosity() / 255; // TODO: double check max lightness/luminosity is 255
+                            break;
+                        case 'lightness':
+                            percentBrightness = this.lightness() / 255;
+                            break;
+                        case 'average':
+                        default:
+                            percentBrightness = this.average() / 255;
+                    }
+                    return Pixel.characterMap[Math.floor(percentBrightness * Pixel.characterMap.length)];
                 }
             }
         </script>
@@ -57,5 +99,6 @@
         <h2>Source image</h2>
         <canvas id="sourceImage"></canvas>
         <h2>ASCII Image</h2>
+        <code id="asciiOutput"></code>
     </body>
 </html>
