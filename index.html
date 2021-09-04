@@ -56,7 +56,7 @@
                 for (let row = 0; row < imageHeight; row++) {
                     let currentAsciiRow = [];
                     for (let column = 0; column < imageWidth; column++) {
-                        currentAsciiRow.push(imagePixelArray[row][column].toAscii());
+                        currentAsciiRow.push(imagePixelArray[row][column].toAscii('lightness'));
                     }
                     imageAsciiArray.push(currentAsciiRow);
                 }
@@ -66,19 +66,20 @@
             function outputAsciiArray(imageAsciiArray) {
                 asciiString = '';
                 for (let i = 0; i < imageAsciiArray.length; i++) {
+                    // console.log(i, 'th row - len ', imageAsciiArray[i].length);
                     asciiString = asciiString.concat(imageAsciiArray[i].join(''), '\n');
                 }
                 document.getElementById('asciiOutput').innerHTML = asciiString;
             }
 
             class Pixel {
-                static characterMap = "`^\",:;Il!i~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
+                static asciiCharacterMap = "`^\",:;Il!i~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
 
                 constructor(red, green, blue, alpha) {
                     this.red = red;
                     this.green = green;
                     this.blue = blue;
-                    this.alpha = alpha; // TODO: necessary? or able to throw away
+                    // this.alpha = alpha; // TODO: necessary? or able to throw away
                 }
                 luminosity() {
                     return 0.21 * this.red + 0.72 * this.green + 0.07 * this.blue;
@@ -103,9 +104,15 @@
                         default:
                             percentBrightness = this.average() / 255;
                     }
-                    let asciiChar = Pixel.characterMap[Math.floor(percentBrightness * Pixel.characterMap.length) - 1];
+                    let asciiCharacterMapIndex = Math.floor(percentBrightness * Pixel.asciiCharacterMap.length) - 1;
+                    if (asciiCharacterMapIndex < 0)
+                        asciiCharacterMapIndex = 0;
+                    let asciiChar = Pixel.asciiCharacterMap[asciiCharacterMapIndex];
                     if (asciiChar)
-                        return asciiChar.repeat(3);
+                        return asciiChar.repeat(2);
+                    else
+                        console.log('Err', this);
+                        return;
                 }
             }
         </script>
