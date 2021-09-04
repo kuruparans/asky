@@ -3,29 +3,35 @@
         <title>Asky - ASCII Image Generator</title>
         <script>
             window.addEventListener('DOMContentLoaded', (event) => {
-                let imageName = 'manchette.jpg';
+                loadImage();
+            });
+
+            function loadImage() {
+                let imageName = 'yoshi.png';
                 let sourceImage = new Image();
                 sourceImage.crossOrigin = 'anonymous';
                 sourceImage.src = imageName;
                 let canvasElement = document.getElementById('sourceImage');
                 let canvasContext = canvasElement.getContext('2d');
                 let sourceImagePixelArray = [];
+
                 sourceImage.onload = function() {
                     canvasElement.width = this.naturalWidth; // set canvas to image size
                     canvasElement.height = this.naturalHeight;
-                    canvasContext.drawImage(sourceImage, 0, 0);
 
                     let sourceImageWidth = canvasElement.width;
                     let sourceImageHeight = canvasElement.height;
+
+                    canvasContext.drawImage(sourceImage, 0, 0);
 
                     let sourceImageData = canvasContext.getImageData(0, 0, sourceImageWidth, sourceImageHeight).data;
                     sourceImagePixelArray = readImageData(sourceImageData, sourceImageWidth, sourceImageHeight);
 
                     let imageAsciiArray = getAsciiArray(sourceImagePixelArray, sourceImageWidth, sourceImageHeight);
 
-                    document.getElementById('asciiOutput').innerHTML = imageAsciiArray.toString();
+                    outputAsciiArray(imageAsciiArray);
                 };
-            });
+            }
 
             function readImageData(imageData, imageWidth, imageHeight) {
                 let imagePixelArray = [];
@@ -55,6 +61,14 @@
                     imageAsciiArray.push(currentAsciiRow);
                 }
                 return imageAsciiArray;
+            }
+
+            function outputAsciiArray(imageAsciiArray) {
+                asciiString = '';
+                for (let i = 0; i < imageAsciiArray.length; i++) {
+                    asciiString = asciiString.concat(imageAsciiArray[i].join(''), '\n');
+                }
+                document.getElementById('asciiOutput').innerHTML = asciiString;
             }
 
             class Pixel {
@@ -89,16 +103,23 @@
                         default:
                             percentBrightness = this.average() / 255;
                     }
-                    return Pixel.characterMap[Math.floor(percentBrightness * Pixel.characterMap.length)];
+                    let asciiChar = Pixel.characterMap[Math.floor(percentBrightness * Pixel.characterMap.length) - 1];
+                    if (asciiChar)
+                        return asciiChar.repeat(3);
                 }
             }
         </script>
+        <style>
+            #asciiOutput {
+                font-size: small;
+            }     
+        </style>
     </head>
     <body>
         <h1>Asky - ASCII Image Generator</h1>
         <h2>Source image</h2>
         <canvas id="sourceImage"></canvas>
         <h2>ASCII Image</h2>
-        <code id="asciiOutput"></code>
+        <pre id="asciiOutput"></pre>
     </body>
 </html>
