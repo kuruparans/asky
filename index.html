@@ -7,27 +7,38 @@
             });
 
             function loadImage() {
-                let imageName = 'yoshi.png';
+                let imageName = 'manchette.jpg';
                 let sourceImage = new Image();
                 sourceImage.crossOrigin = 'anonymous';
                 sourceImage.src = imageName;
-                let canvasElement = document.getElementById('sourceImage');
-                let canvasContext = canvasElement.getContext('2d');
-                let sourceImagePixelArray = [];
 
                 sourceImage.onload = function() {
-                    canvasElement.width = this.naturalWidth; // set canvas to image size
-                    canvasElement.height = this.naturalHeight;
+                    let canvasElement = document.getElementById('sourceImage');
 
-                    let sourceImageWidth = canvasElement.width;
-                    let sourceImageHeight = canvasElement.height;
+                    let sourceImageWidth = this.naturalWidth;
+                    let sourceImageHeight = this.naturalHeight;
 
-                    canvasContext.drawImage(sourceImage, 0, 0);
+                    let windowWidth = window.innerWidth;
+                    let windowHeight = window.innerHeight;
 
-                    let sourceImageData = canvasContext.getImageData(0, 0, sourceImageWidth, sourceImageHeight).data;
-                    sourceImagePixelArray = readImageData(sourceImageData, sourceImageWidth, sourceImageHeight);
+                    let pixelWidthPerCharacter = 1800 / 150; // baseline desktop screen fits 150 characters for 1800px width screen
+                    let resizedImageWidthFactor = 1;
+                    if (pixelWidthPerCharacter * sourceImageWidth > windowWidth)
+                        resizedImageWidthFactor = windowWidth / (pixelWidthPerCharacter * sourceImageWidth);
+                    
+                    let resizedWidth = Math.round(sourceImageWidth * resizedImageWidthFactor);
+                    let resizedHeight = Math.round(resizedWidth / sourceImageWidth * sourceImageHeight);
 
-                    let imageAsciiArray = getAsciiArray(sourceImagePixelArray, sourceImageWidth, sourceImageHeight);
+                    canvasElement.width = resizedWidth;
+                    canvasElement.height = resizedHeight;
+
+                    let canvasContext = canvasElement.getContext('2d');
+                    canvasContext.drawImage(sourceImage, 0, 0, resizedWidth, resizedHeight);
+
+                    let sourceImageData = canvasContext.getImageData(0, 0, resizedWidth, resizedHeight).data;
+                    let sourceImagePixelArray = readImageData(sourceImageData, resizedWidth, resizedHeight);
+
+                    let imageAsciiArray = getAsciiArray(sourceImagePixelArray, resizedWidth, resizedHeight);
 
                     outputAsciiArray(imageAsciiArray);
                 };
@@ -66,7 +77,6 @@
             function outputAsciiArray(imageAsciiArray) {
                 asciiString = '';
                 for (let i = 0; i < imageAsciiArray.length; i++) {
-                    // console.log(i, 'th row - len ', imageAsciiArray[i].length);
                     asciiString = asciiString.concat(imageAsciiArray[i].join(''), '\n');
                 }
                 document.getElementById('asciiOutput').innerHTML = asciiString;
@@ -79,7 +89,6 @@
                     this.red = red;
                     this.green = green;
                     this.blue = blue;
-                    // this.alpha = alpha; // TODO: necessary? or able to throw away
                 }
                 luminosity() {
                     return 0.21 * this.red + 0.72 * this.green + 0.07 * this.blue;
@@ -95,7 +104,7 @@
                     let percentBrightness;
                     switch(brightnessType) {
                         case 'luminosity':
-                            percentBrightness = this.luminosity() / 255; // TODO: double check max lightness/luminosity is 255
+                            percentBrightness = this.luminosity() / 255;
                             break;
                         case 'lightness':
                             percentBrightness = this.lightness() / 255;
@@ -104,6 +113,7 @@
                         default:
                             percentBrightness = this.average() / 255;
                     }
+                    percentBrightness = 1 - percentBrightness;
                     let asciiCharacterMapIndex = Math.floor(percentBrightness * Pixel.asciiCharacterMap.length) - 1;
                     if (asciiCharacterMapIndex < 0)
                         asciiCharacterMapIndex = 0;
@@ -117,6 +127,9 @@
             }
         </script>
         <style>
+            #sourceImage {
+                /* display: none; */
+            }
             #asciiOutput {
                 font-size: small;
             }     
