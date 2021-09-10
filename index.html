@@ -3,45 +3,91 @@
         <title>Asky - ASCII Image Generator</title>
         <script>
             window.addEventListener('DOMContentLoaded', (event) => {
-                loadImage();
+                let videoCaptureButton = document.getElementById('videoCaptureButton');
+                videoCaptureButton.onclick = function() {
+                    getMedia();
+                };
+                loadImage(screenshot=false);
             });
 
-            function loadImage() {
-                let imageName = 'manchette.jpg';
+            async function getMedia() {
+                let constraints = {'video': true};
+                let stream = null;
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    window.stream = stream;
+                    let videoElement = document.getElementById('videoSource');
+                    videoElement.srcObject = stream;
+                } catch(error) {
+                    alert('Camera access issue, refresh and try again.');
+                    console.log(error);
+                }
+                updateScreen();
+            }
+            
+            function updateScreen() {
+                let videoCaptureButton = document.getElementById('videoCaptureButton');
+                videoCaptureButton.style.display = 'none';
+                let screenshotButton = document.getElementById('screenshotButton');
+                screenshotButton.style.display = 'block'
+                screenshotButton.onclick = function() {
+                    takeScreenshot();
+                };
+            }
+
+            function takeScreenshot() {
+                let videoElement = document.getElementById('videoSource');
+                let canvasElement = document.getElementById('sourceImage');
+                canvasElement.width = videoElement.videoWidth;
+                canvasElement.height = videoElement.videoHeight;
+                canvasElement.getContext("2d").drawImage(videoElement, 0, 0);
+
+                loadImage(screenshot=true, videoElement);
+            }
+
+            function loadImage(screenshot, sourceMedia) {
                 let sourceImage = new Image();
                 sourceImage.crossOrigin = 'anonymous';
-                sourceImage.src = imageName;
 
-                sourceImage.onload = function() {
-                    let canvasElement = document.getElementById('sourceImage');
+                if (!screenshot) {
+                    let imageName = 'manchette.jpg';
+                    sourceImage.src = imageName;
+                    sourceImage.onload = function() {
+                        loadCanvas(screenshot, sourceImage, this.naturalWidth, this.naturalHeight);
+                    };
+                } else {
+                    loadCanvas(screenshot, sourceMedia);
+                }
+            }
 
-                    let sourceImageWidth = this.naturalWidth;
-                    let sourceImageHeight = this.naturalHeight;
+            function loadCanvas(screenshot, sourceImage, sourceWidth, sourceHeight) {
+                let canvasElement = document.getElementById('sourceImage');
 
-                    let windowWidth = window.innerWidth;
-                    let windowHeight = window.innerHeight;
+                let sourceImageWidth = sourceWidth ? sourceWidth : canvasElement.width;
+                let sourceImageHeight = sourceHeight ? sourceHeight : canvasElement.height;
+                let windowWidth = window.innerWidth;
+                let windowHeight = window.innerHeight;
 
-                    let pixelWidthPerCharacter = 1800 / 150; // baseline desktop screen fits 150 characters for 1800px width screen
-                    let resizedImageWidthFactor = 1;
-                    if (pixelWidthPerCharacter * sourceImageWidth > windowWidth)
-                        resizedImageWidthFactor = windowWidth / (pixelWidthPerCharacter * sourceImageWidth);
-                    
-                    let resizedWidth = Math.round(sourceImageWidth * resizedImageWidthFactor);
-                    let resizedHeight = Math.round(resizedWidth / sourceImageWidth * sourceImageHeight);
+                let pixelWidthPerCharacter = 1800 / 150; // baseline desktop screen fits 150 characters for 1800px width screen
+                let resizedImageWidthFactor = 1;
+                if (pixelWidthPerCharacter * sourceImageWidth > windowWidth)
+                    resizedImageWidthFactor = windowWidth / (pixelWidthPerCharacter * sourceImageWidth);
 
-                    canvasElement.width = resizedWidth;
-                    canvasElement.height = resizedHeight;
+                let resizedWidth = Math.round(sourceImageWidth * resizedImageWidthFactor);
+                let resizedHeight = Math.round(resizedWidth / sourceImageWidth * sourceImageHeight);
 
-                    let canvasContext = canvasElement.getContext('2d');
-                    canvasContext.drawImage(sourceImage, 0, 0, resizedWidth, resizedHeight);
+                canvasElement.width = resizedWidth;
+                canvasElement.height = resizedHeight;
 
-                    let sourceImageData = canvasContext.getImageData(0, 0, resizedWidth, resizedHeight).data;
-                    let sourceImagePixelArray = readImageData(sourceImageData, resizedWidth, resizedHeight);
+                let canvasContext = canvasElement.getContext('2d');
+                canvasContext.drawImage(sourceImage, 0, 0, resizedWidth, resizedHeight);
 
-                    let imageAsciiArray = getAsciiArray(sourceImagePixelArray, resizedWidth, resizedHeight);
+                let sourceImageData = canvasContext.getImageData(0, 0, resizedWidth, resizedHeight).data;
+                let sourceImagePixelArray = readImageData(sourceImageData, resizedWidth, resizedHeight);
 
-                    outputAsciiArray(imageAsciiArray);
-                };
+                let imageAsciiArray = getAsciiArray(sourceImagePixelArray, resizedWidth, resizedHeight);
+
+                outputAsciiArray(imageAsciiArray);
             }
 
             function readImageData(imageData, imageWidth, imageHeight) {
@@ -132,11 +178,22 @@
             }
             #asciiOutput {
                 font-size: small;
-            }     
+            }
+            button {
+                background: white;
+                color: black;
+                padding: 5px;
+            }
+            #screenshotButton {
+                display: none;
+            }
         </style>
     </head>
     <body>
         <h1>Asky - ASCII Image Generator</h1>
+        <h2>Take a selfie</h2>
+        <video id="videoSource" autoplay></video>
+        <p><button id="videoCaptureButton">Capture Video</button> <button id="screenshotButton">Take a Screenshot</button></p>
         <h2>Source image</h2>
         <canvas id="sourceImage"></canvas>
         <h2>ASCII Image</h2>
