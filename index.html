@@ -7,6 +7,11 @@
                 videoCaptureButton.onclick = function() {
                     getMedia();
                 };
+                let invertButton = document.getElementById('invertButton');
+                invertButton.onclick = function() {
+                    let [brightnessType, invertedFlag] = readAsciiSettings();
+                    readCanvas(brightnessType, invertedFlag);
+                };
                 loadImage(screenshot=false);
             });
 
@@ -21,6 +26,7 @@
                 } catch(error) {
                     alert('Camera access issue, refresh and try again.');
                     console.log(error);
+                    return;
                 }
                 updateScreen();
             }
@@ -82,12 +88,24 @@
                 let canvasContext = canvasElement.getContext('2d');
                 canvasContext.drawImage(sourceImage, 0, 0, resizedWidth, resizedHeight);
 
-                let sourceImageData = canvasContext.getImageData(0, 0, resizedWidth, resizedHeight).data;
-                let sourceImagePixelArray = readImageData(sourceImageData, resizedWidth, resizedHeight);
+                readCanvas();
+            }
 
-                let imageAsciiArray = getAsciiArray(sourceImagePixelArray, resizedWidth, resizedHeight);
+            function readCanvas(brightnessType, invertedFlag) {
+                let canvasElement = document.getElementById('sourceImage');
+                let canvasContext = canvasElement.getContext('2d');
+                let sourceImageData = canvasContext.getImageData(0, 0, canvasElement.width, canvasElement.height).data;
+                let sourceImagePixelArray = readImageData(sourceImageData, canvasElement.width, canvasElement.height);
+
+                let imageAsciiArray = getAsciiArray(sourceImagePixelArray, canvasElement.width, canvasElement.height, brightnessType, invertedFlag);
 
                 outputAsciiArray(imageAsciiArray);
+            }
+
+            function readAsciiSettings() {
+                let brightnessType = 'average';
+                let invertedFlag = document.getElementById('invertButton');
+                return [brightnessType, invertedFlag.checked];
             }
 
             function readImageData(imageData, imageWidth, imageHeight) {
@@ -108,12 +126,14 @@
                 return imagePixelArray;
             }
 
-            function getAsciiArray(imagePixelArray, imageWidth, imageHeight) {
+            function getAsciiArray(imagePixelArray, imageWidth, imageHeight, brightnessType, invertedFlag) {
                 let imageAsciiArray = []
+                if (!brightnessType)
+                    brightnessType = 'average';
                 for (let row = 0; row < imageHeight; row++) {
                     let currentAsciiRow = [];
                     for (let column = 0; column < imageWidth; column++) {
-                        currentAsciiRow.push(imagePixelArray[row][column].toAscii('lightness'));
+                        currentAsciiRow.push(imagePixelArray[row][column].toAscii(brightnessType, invertedFlag));
                     }
                     imageAsciiArray.push(currentAsciiRow);
                 }
@@ -146,7 +166,7 @@
                     return (this.red + this.blue + this.green) / 3;
                 }
 
-                toAscii(brightnessType) {
+                toAscii(brightnessType, invertedType) {
                     let percentBrightness;
                     switch(brightnessType) {
                         case 'luminosity':
@@ -159,7 +179,8 @@
                         default:
                             percentBrightness = this.average() / 255;
                     }
-                    percentBrightness = 1 - percentBrightness;
+                    if (!invertedType)
+                        percentBrightness = 1 - percentBrightness;
                     let asciiCharacterMapIndex = Math.floor(percentBrightness * Pixel.asciiCharacterMap.length) - 1;
                     if (asciiCharacterMapIndex < 0)
                         asciiCharacterMapIndex = 0;
@@ -194,6 +215,8 @@
         <h2>Take a selfie</h2>
         <video id="videoSource" autoplay></video>
         <p><button id="videoCaptureButton">Capture Video</button> <button id="screenshotButton">Take a Screenshot</button></p>
+        <p>Brightness type: <input type="radio" id="brightnessTypeLuminosity" name="brightnessType" /><label for="brightnessTypeLuminosity">Luminosity</label> <input type="radio" id="brightnessTypeLightness" name="brightnessType" /><label for="brightnessTypeLightness">Lightness</label> <input type="radio" id="brightnessTypeAverage" checked name="brightnessType" /><label for="brightnessTypeAverage">Average</label></p>
+        <p><label for="invertButton">Invert brightness</label>: <input type="checkbox" id="invertButton" /></p>
         <h2>Source image</h2>
         <canvas id="sourceImage"></canvas>
         <h2>ASCII Image</h2>
