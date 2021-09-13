@@ -9,10 +9,15 @@
                 };
                 let invertButton = document.getElementById('invertButton');
                 invertButton.onclick = function() {
-                    let [brightnessType, invertedFlag] = readAsciiSettings();
-                    readCanvas(brightnessType, invertedFlag);
+                    readCanvas();
                 };
-                loadImage(screenshot=false);
+                let brightnessButton = document.querySelectorAll('input[name="brightnessType"]');
+                brightnessButton.forEach(function(button) {
+                    button.onclick = function() {
+                        readCanvas();
+                    };
+                });
+                loadImage();
             });
 
             async function getMedia() {
@@ -48,25 +53,25 @@
                 canvasElement.height = videoElement.videoHeight;
                 canvasElement.getContext("2d").drawImage(videoElement, 0, 0);
 
-                loadImage(screenshot=true, videoElement);
+                loadImage(videoElement);
             }
 
-            function loadImage(screenshot, sourceMedia) {
+            function loadImage(sourceMedia) {
                 let sourceImage = new Image();
                 sourceImage.crossOrigin = 'anonymous';
 
-                if (!screenshot) {
+                if (!sourceMedia) {
                     let imageName = 'manchette.jpg';
                     sourceImage.src = imageName;
                     sourceImage.onload = function() {
-                        loadCanvas(screenshot, sourceImage, this.naturalWidth, this.naturalHeight);
+                        loadCanvas(sourceImage, this.naturalWidth, this.naturalHeight);
                     };
                 } else {
-                    loadCanvas(screenshot, sourceMedia);
+                    loadCanvas(sourceMedia);
                 }
             }
 
-            function loadCanvas(screenshot, sourceImage, sourceWidth, sourceHeight) {
+            function loadCanvas(sourceImage, sourceWidth, sourceHeight) {
                 let canvasElement = document.getElementById('sourceImage');
 
                 let sourceImageWidth = sourceWidth ? sourceWidth : canvasElement.width;
@@ -91,21 +96,22 @@
                 readCanvas();
             }
 
-            function readCanvas(brightnessType, invertedFlag) {
+            function readCanvas() {
                 let canvasElement = document.getElementById('sourceImage');
                 let canvasContext = canvasElement.getContext('2d');
                 let sourceImageData = canvasContext.getImageData(0, 0, canvasElement.width, canvasElement.height).data;
                 let sourceImagePixelArray = readImageData(sourceImageData, canvasElement.width, canvasElement.height);
 
+                let [brightnessType, invertedFlag] = readAsciiSettings();
                 let imageAsciiArray = getAsciiArray(sourceImagePixelArray, canvasElement.width, canvasElement.height, brightnessType, invertedFlag);
 
                 outputAsciiArray(imageAsciiArray);
             }
 
             function readAsciiSettings() {
-                let brightnessType = 'average';
-                let invertedFlag = document.getElementById('invertButton');
-                return [brightnessType, invertedFlag.checked];
+                let brightnessType = document.querySelector('input[name="brightnessType"]:checked').value;
+                let invertedFlag = document.getElementById('invertButton').checked;
+                return [brightnessType, invertedFlag];
             }
 
             function readImageData(imageData, imageWidth, imageHeight) {
@@ -188,7 +194,7 @@
                     if (asciiChar)
                         return asciiChar.repeat(2);
                     else
-                        console.log('Err', this);
+                        console.log('Error: ', this);
                         return;
                 }
             }
@@ -215,7 +221,7 @@
         <h2>Take a selfie</h2>
         <video id="videoSource" autoplay></video>
         <p><button id="videoCaptureButton">Capture Video</button> <button id="screenshotButton">Take a Screenshot</button></p>
-        <p>Brightness type: <input type="radio" id="brightnessTypeLuminosity" name="brightnessType" /><label for="brightnessTypeLuminosity">Luminosity</label> <input type="radio" id="brightnessTypeLightness" name="brightnessType" /><label for="brightnessTypeLightness">Lightness</label> <input type="radio" id="brightnessTypeAverage" checked name="brightnessType" /><label for="brightnessTypeAverage">Average</label></p>
+        <p>Brightness type: <form><input type="radio" id="brightnessTypeLuminosity" name="brightnessType" value="luminosity" /><label for="brightnessTypeLuminosity">Luminosity</label> <input type="radio" id="brightnessTypeLightness" name="brightnessType" value="lightness" /><label for="brightnessTypeLightness">Lightness</label> <input type="radio" id="brightnessTypeAverage" checked name="brightnessType" value="average" /><label for="brightnessTypeAverage">Average</label></form></p>
         <p><label for="invertButton">Invert brightness</label>: <input type="checkbox" id="invertButton" /></p>
         <h2>Source image</h2>
         <canvas id="sourceImage"></canvas>
