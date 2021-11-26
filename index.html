@@ -45,7 +45,7 @@
                 let videoCaptureButton = document.getElementById('videoCaptureButton');
                 videoCaptureButton.style.display = 'none';
                 let screenshotButton = document.getElementById('screenshotButton');
-                screenshotButton.style.display = 'block'
+                screenshotButton.style.display = 'inline';
                 screenshotButton.onclick = function() {
                     takeScreenshot();
                 };
@@ -221,6 +221,7 @@
                 display: inline-block;
                 padding: 6px 12px;
                 cursor: pointer;
+                font-size: 1em;
             }
             input[type="file"] {
                 display: none;
@@ -235,20 +236,17 @@
         <h2>ASCII art generator</h2>
 
         <h3>Asking for a pic</h3>
-        <label for="uploadImageButton" class="uploadImageClass">
-            Upload
-        </label>
-        <input type="file" value="Upload" id="uploadImageButton" />        
-        <p><input type="file" value="Upload" id="uploadImageButton" /><button id="videoCaptureButton">Camera</button> <button id="screenshotButton">Shoot</button></p>
+        <p><label for="uploadImageButton" class="uploadImageClass">Upload</label><input type="file" value="Upload" id="uploadImageButton" />        
+        <input type="file" value="Upload" id="uploadImageButton" /><button id="videoCaptureButton">Camera</button> <button id="screenshotButton">Shoot</button></p>
 
         <h2>Asking for a look</h2>
         <video id="videoSource" autoplay></video>
         <canvas id="sourceImage"></canvas>
 
         <h3>Asking for options</h3>
-        <p>Brightness type: <form><input type="radio" id="brightnessTypeLuminosity" name="brightnessType" value="luminosity" /><label for="brightnessTypeLuminosity">Luminosity</label> <input type="radio" id="brightnessTypeLightness" name="brightnessType" value="lightness" /><label for="brightnessTypeLightness">Lightness</label> <input type="radio" id="brightnessTypeAverage" checked name="brightnessType" value="average" /><label for="brightnessTypeAverage">Average</label></form></p>
-        <p><label for="invertButton">Invert</label>: <input type="checkbox" id="invertButton" /></p>
-        
+        <p>Brightness type: <input type="radio" id="brightnessTypeLuminosity" name="brightnessType" value="luminosity" /><label for="brightnessTypeLuminosity">Luminosity</label> <input type="radio" id="brightnessTypeLightness" name="brightnessType" value="lightness" /><label for="brightnessTypeLightness">Lightness</label> <input type="radio" id="brightnessTypeAverage" checked name="brightnessType" value="average" /><label for="brightnessTypeAverage">Average</label></p>
+        <p><label for="invertButton">Invert ASCII</label>: <input type="checkbox" id="invertButton" /></p>
+
         <h2>Asking for ASCII</h2>
         <pre id="asciiOutput"></pre>
     </body>
