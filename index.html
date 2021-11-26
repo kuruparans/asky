@@ -3,6 +3,10 @@
         <title>Asky - ASCII Image Generator</title>
         <script>
             window.addEventListener('DOMContentLoaded', (event) => {
+                let uploadImageButton = document.getElementById('uploadImageButton');
+                uploadImageButton.onchange = function () {
+                    
+                };
                 let videoCaptureButton = document.getElementById('videoCaptureButton');
                 videoCaptureButton.onclick = function() {
                     getMedia();
@@ -27,6 +31,7 @@
                     stream = await navigator.mediaDevices.getUserMedia(constraints);
                     window.stream = stream;
                     let videoElement = document.getElementById('videoSource');
+                    videoElement.style.display = 'inline';
                     videoElement.srcObject = stream;
                 } catch(error) {
                     alert('Camera access issue, refresh and try again.');
@@ -200,16 +205,25 @@
             }
         </script>
         <style>
-            #sourceImage {
-                /* display: none; */
+            body, button {
+                font-family:'Courier New', Courier, monospace;
+            }
+            #videoSource {
+                display: none;
             }
             #asciiOutput {
                 font-size: small;
             }
-            button {
+            button, input,.uploadImageClass {
                 background: white;
                 color: black;
-                padding: 5px;
+                border: 1px solid #ccc;
+                display: inline-block;
+                padding: 6px 12px;
+                cursor: pointer;
+            }
+            input[type="file"] {
+                display: none;
             }
             #screenshotButton {
                 display: none;
@@ -217,15 +231,25 @@
         </style>
     </head>
     <body>
-        <h1>Asky - ASCII Image Generator</h1>
-        <h2>Take a selfie</h2>
+        <h1>Asky</h1>
+        <h2>ASCII art generator</h2>
+
+        <h3>Asking for a pic</h3>
+        <label for="uploadImageButton" class="uploadImageClass">
+            Upload
+        </label>
+        <input type="file" value="Upload" id="uploadImageButton" />        
+        <p><input type="file" value="Upload" id="uploadImageButton" /><button id="videoCaptureButton">Camera</button> <button id="screenshotButton">Shoot</button></p>
+
+        <h2>Asking for a look</h2>
         <video id="videoSource" autoplay></video>
-        <p><button id="videoCaptureButton">Capture Video</button> <button id="screenshotButton">Take a Screenshot</button></p>
-        <p>Brightness type: <form><input type="radio" id="brightnessTypeLuminosity" name="brightnessType" value="luminosity" /><label for="brightnessTypeLuminosity">Luminosity</label> <input type="radio" id="brightnessTypeLightness" name="brightnessType" value="lightness" /><label for="brightnessTypeLightness">Lightness</label> <input type="radio" id="brightnessTypeAverage" checked name="brightnessType" value="average" /><label for="brightnessTypeAverage">Average</label></form></p>
-        <p><label for="invertButton">Invert brightness</label>: <input type="checkbox" id="invertButton" /></p>
-        <h2>Source image</h2>
         <canvas id="sourceImage"></canvas>
-        <h2>ASCII Image</h2>
+
+        <h3>Asking for options</h3>
+        <p>Brightness type: <form><input type="radio" id="brightnessTypeLuminosity" name="brightnessType" value="luminosity" /><label for="brightnessTypeLuminosity">Luminosity</label> <input type="radio" id="brightnessTypeLightness" name="brightnessType" value="lightness" /><label for="brightnessTypeLightness">Lightness</label> <input type="radio" id="brightnessTypeAverage" checked name="brightnessType" value="average" /><label for="brightnessTypeAverage">Average</label></form></p>
+        <p><label for="invertButton">Invert</label>: <input type="checkbox" id="invertButton" /></p>
+        
+        <h2>Asking for ASCII</h2>
         <pre id="asciiOutput"></pre>
     </body>
 </html>
