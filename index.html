@@ -4,12 +4,12 @@
         <script>
             window.addEventListener('DOMContentLoaded', (event) => {
                 let uploadImageButton = document.getElementById('uploadImageButton');
-                uploadImageButton.onchange = function () {
-                    
+                uploadImageButton.onclick = function () {
+                    uploadImage();
                 };
                 let videoCaptureButton = document.getElementById('videoCaptureButton');
                 videoCaptureButton.onclick = function() {
-                    getMedia();
+                    loadCameraVideo();
                 };
                 let invertButton = document.getElementById('invertButton');
                 invertButton.onclick = function() {
@@ -24,7 +24,7 @@
                 loadImage();
             });
 
-            async function getMedia() {
+            async function loadCameraVideo() {
                 let constraints = {'video': true};
                 let stream = null;
                 try {
@@ -39,6 +39,17 @@
                     return;
                 }
                 updateScreen();
+            }
+
+            function uploadImage() {
+                let imageFile = document.getElementById('uploadImageButton').files[0];
+                let reader = new FileReader();
+                reader.onload = function(){
+                    loadImage(reader.result, true);
+                };
+                if (imageFile) {
+                    reader.readAsDataURL(imageFile);
+                }
             }
             
             function updateScreen() {
@@ -61,12 +72,16 @@
                 loadImage(videoElement);
             }
 
-            function loadImage(sourceMedia) {
+            function loadImage(sourceMedia, uploadFlag) {
                 let sourceImage = new Image();
                 sourceImage.crossOrigin = 'anonymous';
 
-                if (!sourceMedia) {
-                    let imageName = 'manchette.jpg';
+                if (!sourceMedia || uploadFlag) {
+                    let imageName;
+                    if (uploadFlag)
+                        imageName = sourceMedia;
+                    else
+                        imageName = 'manchette.jpg';
                     sourceImage.src = imageName;
                     sourceImage.onload = function() {
                         loadCanvas(sourceImage, this.naturalWidth, this.naturalHeight);
