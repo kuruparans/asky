@@ -1,21 +1,25 @@
 window.addEventListener('DOMContentLoaded', (event) => {
     let uploadImageButton = document.getElementById('uploadImageButton');
-    uploadImageButton.onclick = function () {
+    uploadImageButton.addEventListener('change', (event) => { // onchange event fires after file chosen
         uploadImage();
-    };
+    });
     let videoCaptureButton = document.getElementById('videoCaptureButton');
-    videoCaptureButton.onclick = function() {
+    videoCaptureButton.addEventListener('click', (event) => {
         loadCameraVideo();
-    };
-    let invertButton = document.getElementById('invertButton');
-    invertButton.onclick = function() {
-        readCanvas();
-    };
+    });
     let brightnessButton = document.querySelectorAll('input[name="brightnessType"]');
     brightnessButton.forEach(function(button) {
-        button.onclick = function() {
+        button.addEventListener('click', (event) => {
             readCanvas();
-        };
+        });
+    });
+    let invertButton = document.getElementById('invertButton');
+    invertButton.addEventListener('click', (event) => {
+        readCanvas();
+    });
+    let colourButton = document.getElementById('colourButton');
+    colourButton.addEventListener('click', (event) => {
+        readCanvas();
     });
     loadImage();
 });
@@ -29,9 +33,9 @@ async function loadCameraVideo() {
         let videoElement = document.getElementById('videoSource');
         videoElement.style.display = 'inline';
         videoElement.srcObject = stream;
-    } catch(error) {
+    } catch (error) {
         alert('Camera access issue, refresh and try again.');
-        console.log(error);
+        console.error(error);
         return;
     }
     updateScreen();
@@ -40,9 +44,9 @@ async function loadCameraVideo() {
 function uploadImage() {
     let imageFile = document.getElementById('uploadImageButton').files[0];
     let reader = new FileReader();
-    reader.onload = function(){
+    reader.addEventListener('load', function() {
         loadImage(reader.result, true);
-    };
+    });
     if (imageFile) {
         reader.readAsDataURL(imageFile);
     }
@@ -53,9 +57,9 @@ function updateScreen() {
     videoCaptureButton.style.display = 'none';
     let screenshotButton = document.getElementById('screenshotButton');
     screenshotButton.style.display = 'inline';
-    screenshotButton.onclick = function() {
+    screenshotButton.addEventListener('click', () => {
         takeScreenshot();
-    };
+    });
 }
 
 function takeScreenshot() {
@@ -118,8 +122,8 @@ function readCanvas() {
     let sourceImageData = canvasContext.getImageData(0, 0, canvasElement.width, canvasElement.height).data;
     let sourceImagePixelArray = readImageData(sourceImageData, canvasElement.width, canvasElement.height);
 
-    let [brightnessType, invertedFlag] = readAsciiSettings();
-    let imageAsciiArray = getAsciiArray(sourceImagePixelArray, canvasElement.width, canvasElement.height, brightnessType, invertedFlag);
+    let [brightnessType, colourFlag, invertedFlag] = readAsciiSettings();
+    let imageAsciiArray = getAsciiArray(sourceImagePixelArray, canvasElement.width, canvasElement.height, brightnessType, colourFlag, invertedFlag);
 
     outputAsciiArray(imageAsciiArray);
 }
@@ -127,7 +131,8 @@ function readCanvas() {
 function readAsciiSettings() {
     let brightnessType = document.querySelector('input[name="brightnessType"]:checked').value;
     let invertedFlag = document.getElementById('invertButton').checked;
-    return [brightnessType, invertedFlag];
+    let colourFlag = document.getElementById('colourButton').checked;
+    return [brightnessType, colourFlag, invertedFlag];
 }
 
 function readImageData(imageData, imageWidth, imageHeight) {
@@ -148,14 +153,12 @@ function readImageData(imageData, imageWidth, imageHeight) {
     return imagePixelArray;
 }
 
-function getAsciiArray(imagePixelArray, imageWidth, imageHeight, brightnessType, invertedFlag) {
+function getAsciiArray(imagePixelArray, imageWidth, imageHeight, brightnessType='average', colourFlag=false, invertedFlag=false) {
     let imageAsciiArray = []
-    if (!brightnessType)
-        brightnessType = 'average';
     for (let row = 0; row < imageHeight; row++) {
         let currentAsciiRow = [];
         for (let column = 0; column < imageWidth; column++) {
-            currentAsciiRow.push(imagePixelArray[row][column].toAscii(brightnessType, invertedFlag));
+            currentAsciiRow.push(imagePixelArray[row][column].toAscii(brightnessType, colourFlag, invertedFlag));
         }
         imageAsciiArray.push(currentAsciiRow);
     }
@@ -165,7 +168,7 @@ function getAsciiArray(imagePixelArray, imageWidth, imageHeight, brightnessType,
 function outputAsciiArray(imageAsciiArray) {
     asciiString = '';
     for (let i = 0; i < imageAsciiArray.length; i++) {
-        asciiString = asciiString.concat(imageAsciiArray[i].join(''), '\n');
+            asciiString = asciiString + imageAsciiArray[i].join('') + '\n';
     }
     document.getElementById('asciiOutput').innerHTML = asciiString;
 }
@@ -188,7 +191,7 @@ class Pixel {
         return (this.red + this.blue + this.green) / 3;
     }
 
-    toAscii(brightnessType, invertedType) {
+    toAscii(brightnessType, colourFlag, invertedType) {
         let percentBrightness;
         switch(brightnessType) {
             case 'luminosity':
@@ -207,11 +210,12 @@ class Pixel {
         if (asciiCharacterMapIndex < 0)
             asciiCharacterMapIndex = 0;
         let asciiChar = Pixel.asciiCharacterMap[asciiCharacterMapIndex];
-        if (asciiChar)
-            return asciiChar.repeat(2);
-        else {
-            console.log('Error: ', this);
+        if (!asciiChar) {
+            console.error('Error with ASCII toString on: ', this);
             return;
         }
+        if (colourFlag)
+            return `<span style="color:rgb(${this.red},${this.green},${this.blue});">` + asciiChar.repeat(2) + '</span>';
+        return asciiChar.repeat(2);
     }
 }

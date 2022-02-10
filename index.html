@@ -8,8 +8,8 @@
         <h1>Asky - <span>an ASCII art generator</span></h1>
 
         <h2>Asking for a pic</h2>
-        <p><label for="uploadImageButton" class="uploadImageClass">Upload</label><input type="file" value="Upload" id="uploadImageButton" />        
-        <input type="file" value="Upload" id="uploadImageButton" /><button id="videoCaptureButton">Camera</button> <button id="screenshotButton">Shoot</button></p>
+        <p><label for="uploadImageButton" class="uploadImageClass"><u>U</u>pload</label><input type="file" value="Upload" id="uploadImageButton" accesskey="u" />
+        <button id="videoCaptureButton" accesskey="c"><u>C</u>amera</button> <button id="screenshotButton" accesskey="s"><u>S</u>hoot</button></p>
 
         <h2>Asking for a look</h2>
         <video id="videoSource" autoplay></video>
@@ -18,6 +18,7 @@
         <h3>Asking for options</h3>
         <p>Brightness type: <input type="radio" id="brightnessTypeLuminosity" name="brightnessType" value="luminosity" /><label for="brightnessTypeLuminosity">Luminosity</label> <input type="radio" id="brightnessTypeLightness" name="brightnessType" value="lightness" /><label for="brightnessTypeLightness">Lightness</label> <input type="radio" id="brightnessTypeAverage" checked name="brightnessType" value="average" /><label for="brightnessTypeAverage">Average</label></p>
         <p><label for="invertButton">Invert image</label>: <input type="checkbox" id="invertButton" /></p>
+        <p><label for="colourButton">Add colour</label>: <input type="checkbox" id="colourButton" /></p>
 
         <h2>Asking for ASCII</h2>
         <pre id="asciiOutput"></pre>
